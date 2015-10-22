@@ -57,12 +57,19 @@ def expander(self):
 
                 if response.status_code in (300, 301, 302, 303, 307):
                     if "location" in response.headers:
-                        url = response.headers["location"]
+                        location = response.headers["location"]
                     elif "Location" in response.headers:
-                        url = response.headers["Location"]
+                        location = response.headers["Location"]
                     else:
                         data["status"] = "OK"
                         break
+                    # check if the url is relative or absolute
+                    if location.startswith('/'):
+                        parsedloc = list(urlparse.urlparse(location))
+                        parsedurl = list(urlparse.urlparse(url))
+                        url = urlparse.urlunparse(parsedurl[:2] + parsedloc[2:])
+                    else:
+                        url = location
                 else:
                     # no more redirects; we're done
                     data["status"] = "OK"
